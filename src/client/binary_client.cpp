@@ -846,6 +846,8 @@ public:
         const SymmetricAlgorithmHeader algorithmHeader = CreateAlgorithmHeader();
         hdr.AddSize(RawSize(algorithmHeader));
 
+        std::unique_lock<std::mutex> send_lock(send_mutex);
+
         const SequenceHeader sequence = CreateSequenceHeader();
         hdr.AddSize(RawSize(sequence));
 
@@ -914,11 +916,12 @@ private:
     const SymmetricAlgorithmHeader algorithmHeader = CreateAlgorithmHeader();
     hdr.AddSize(RawSize(algorithmHeader));
 
+    std::unique_lock<std::mutex> send_lock(send_mutex);
+
     const SequenceHeader sequence = CreateSequenceHeader();
     hdr.AddSize(RawSize(sequence));
     hdr.AddSize(RawSize(request));
 
-    std::unique_lock<std::mutex> send_lock(send_mutex);
     Stream << hdr << algorithmHeader << sequence << request << flush;
   }
 
@@ -1140,6 +1143,8 @@ void BinaryClient::Send<OpenSecureChannelRequest>(OpenSecureChannelRequest reque
   algorithmHeader.ReceiverCertificateThumbPrint = Params.ReceiverCertificateThumbPrint;
   hdr.AddSize(RawSize(algorithmHeader));
   hdr.AddSize(RawSize(request));
+
+  std::unique_lock<std::mutex> send_lock(send_mutex);
 
   const SequenceHeader sequence = CreateSequenceHeader();
   hdr.AddSize(RawSize(sequence));
